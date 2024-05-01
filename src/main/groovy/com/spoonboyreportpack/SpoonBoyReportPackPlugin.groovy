@@ -59,11 +59,6 @@ class SpoonBoyReportPackPlugin extends Plugin {
         // assigned roles
         //this.registerProvider(new RoleAssignedRoleReportProvider(this,this.morpheus))
 
-
-        // policy reports
-        // enforcing policies
-        //this.registerProvider(new PolicyEnforcingPoliciesReportProvider(this,this.morpheus))
-
         // provisioning inventory
         // Morpheus Agent installed versions
         this.registerProvider(new ProvisioningInventoryMorpheusAgentInstalledVersionReportProvider(this,this.morpheus))

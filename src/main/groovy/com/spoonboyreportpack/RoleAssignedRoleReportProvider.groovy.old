@@ -116,6 +116,10 @@ class RoleAssignedRoleReportProvider extends AbstractReportProvider{
 	@Override
 	void process(ReportResult reportResult) {
 		//TODO: Fill out a report process as described above. NOTE: Use DataServices where able.
+
+		/*
+		select r.authority, r.description, r.role_type, u.username, u.email from role r inner join account a inner join user u where a.id = r.owner_id and u.account_id = a.id and a.name = "Neo" order by r.authority, r.description, r.role_type;
+		*/
 	}
 
 	/**
