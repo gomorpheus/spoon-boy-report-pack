@@ -64,8 +64,17 @@ class CypherPasswordAccessReportProvider extends AbstractReportProvider {
 
         try {
             dbConnection = morpheus.report.getReadOnlyDatabaseConnection().blockingGet();
-            repResults = new Sql(dbConnection).rows("SELECT date_created, description FROM morpheus.audit_log WHERE object_class = 'cypherItem';");
+            def sql = new Sql(dbConnection);
+            repResults = sql.rows("""
+                SELECT a.object_id, a.date_created, a.description, c.item_key,
+                substring(a.description, (locate("suser=",a.description,20) + 6), 
+                ((locate("request=", a.description, 20)-5) - (locate("suser=",a.description,20)+2))) as username
+                FROM morpheus.audit_log a
+                LEFT JOIN morpheus.cypher_item c ON a.object_id = c.id
+                WHERE a.object_class = 'cypherItem'
+            """);
             log.info("Fetched {} rows from the database", repResults.size());
+            
         } catch (Exception e) {
             log.error("Error fetching data from the database", e);
         } finally {
@@ -76,10 +85,11 @@ class CypherPasswordAccessReportProvider extends AbstractReportProvider {
         observable.map { resultRow ->
             def Map<String, Object> data = [:];
             data = [
-                dateCreated: resultRow.date_created.format(formatter),
-                username: resultRow.description //.split("suser=")[1].split(" ")[0]
-                //objectId: resultRow
-            ];
+                dateAccessed: resultRow.date_created.format(formatter),
+                username: resultRow.username,
+                cypher: resultRow.item_key,
+                description: resultRow.description.split(/\|/)[5],
+                    ];
             log.info("Processed row: {}", data);
 
             ReportResultRow resultRowRecord = new ReportResultRow(section: ReportResultRow.SECTION_MAIN, displayOrder: displayOrder++, dataMap: data);
