@@ -59,7 +59,7 @@ class CypherPasswordAccessReportProvider extends AbstractReportProvider {
 
         try {
             dbConnection = morpheus.report.getReadOnlyDatabaseConnection().blockingGet();
-            repResults = new Sql(dbConnection).rows("SELECT date_created, description  FROM morpheus.audit_log WHERE object_class = 'cypherItem';");
+            repResults = new Sql(dbConnection).rows("SELECT date_created, description FROM morpheus.audit_log WHERE object_class = 'cypherItem';");
         } finally {
             morpheus.report.releaseDatabaseConnection(dbConnection);
         }
@@ -69,7 +69,7 @@ class CypherPasswordAccessReportProvider extends AbstractReportProvider {
             def Map<String, Object> data = [:];
             data = [
                 dateCreated: resultRow.date_created,
-                username: resultRow.description.split("suser=")[1].split(" ")[0]
+                username: resultRow.description //.split("suser=")[1].split(" ")[0]
                 //objectId: resultRow
             ];
 
