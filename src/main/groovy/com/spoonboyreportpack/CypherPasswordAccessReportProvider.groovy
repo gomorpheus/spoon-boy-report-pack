@@ -14,8 +14,13 @@ import groovy.sql.GroovyRowResult;
 import groovy.sql.Sql;
 import java.sql.Connection;
 import io.reactivex.rxjava3.core.Observable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.time.format.DateTimeFormatter;
 
 class CypherPasswordAccessReportProvider extends AbstractReportProvider {
+    private static final Logger log = LoggerFactory.getLogger(CypherPasswordAccessReportProvider.class);
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     protected MorpheusContext morpheusContext;
     protected Plugin plugin;
 
@@ -60,6 +65,9 @@ class CypherPasswordAccessReportProvider extends AbstractReportProvider {
         try {
             dbConnection = morpheus.report.getReadOnlyDatabaseConnection().blockingGet();
             repResults = new Sql(dbConnection).rows("SELECT date_created, description FROM morpheus.audit_log WHERE object_class = 'cypherItem';");
+            log.info("Fetched {} rows from the database", repResults.size());
+        } catch (Exception e) {
+            log.error("Error fetching data from the database", e);
         } finally {
             morpheus.report.releaseDatabaseConnection(dbConnection);
         }
@@ -68,16 +76,18 @@ class CypherPasswordAccessReportProvider extends AbstractReportProvider {
         observable.map { resultRow ->
             def Map<String, Object> data = [:];
             data = [
-                dateCreated: resultRow.date_created,
+                dateCreated: resultRow.date_created.format(formatter),
                 username: resultRow.description //.split("suser=")[1].split(" ")[0]
                 //objectId: resultRow
             ];
+            log.info("Processed row: {}", data);
 
             ReportResultRow resultRowRecord = new ReportResultRow(section: ReportResultRow.SECTION_MAIN, displayOrder: displayOrder++, dataMap: data);
             return resultRowRecord;
         }.buffer(50).doOnComplete {
             morpheus.report.updateReportResultStatus(reportResult, ReportResult.Status.ready).blockingAwait();
         }.doOnError { Throwable t ->
+            log.error("Error processing report", t);
             morpheus.report.updateReportResultStatus(reportResult, ReportResult.Status.failed).blockingAwait();
         }.subscribe { resultRows ->
             morpheus.report.appendResultRows(reportResult, resultRows).blockingGet();
