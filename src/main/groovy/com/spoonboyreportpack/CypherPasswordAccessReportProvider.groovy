@@ -66,12 +66,26 @@ class CypherPasswordAccessReportProvider extends AbstractReportProvider {
             dbConnection = morpheus.report.getReadOnlyDatabaseConnection().blockingGet();
             def sql = new Sql(dbConnection);
             repResults = sql.rows("""
-                SELECT a.object_id, a.date_created, a.description, c.item_key,
-                substring(a.description, (locate("suser=",a.description,20) + 6), 
-                ((locate("request=", a.description, 20)-5) - (locate("suser=",a.description,20)+2))) as username
-                FROM morpheus.audit_log a
-                LEFT JOIN morpheus.cypher_item c ON a.object_id = c.id
-                WHERE a.object_class = 'cypherItem'
+                  SELECT
+    a.object_id,
+    a.date_created,
+    a.description,
+    c.item_key,
+    CASE
+        WHEN locate("suser=", a.description) > 0 THEN SUBSTRING(a.description, locate("suser=", a.description) + 6, locate(' ', a.description, locate("suser=", a.description) + 6) - (locate("suser=", a.description) + 6))
+        ELSE ''
+    END AS username,
+    SUBSTRING(substring(a.description, (locate("cn2=", a.description, 20) + 4),
+    ((locate("fullName", a.description, 20) - 4) - (locate("cn2=", a.description, 20) + 4))), 1, LOCATE(' ', substring(a.description, (locate("cn2=", a.description, 20) + 4),
+    ((locate("fullName", a.description, 20) - 4) - (locate("cn2=", a.description, 20) + 4))))-1) AS account_id
+FROM
+    morpheus.audit_log a
+LEFT JOIN
+    morpheus.cypher_item c ON a.object_id = c.id
+WHERE
+    a.object_class = 'cypherItem'
+    AND substring(a.description, (locate("cn2=", a.description, 20) + 4),
+    ((locate("fullName", a.description, 20) - 4) - (locate("cn2=", a.description, 20) + 4))) LIKE concat(${reportResult.getAccount().getId()}, '%')
             """);
             log.info("Fetched {} rows from the database", repResults.size());
             
@@ -89,7 +103,9 @@ class CypherPasswordAccessReportProvider extends AbstractReportProvider {
                 username: resultRow.username,
                 cypher: resultRow.item_key,
                 description: resultRow.description.split(/\|/)[5],
-                    ];
+                //accountid: resultRow.account_id
+                
+            ];
             log.info("Processed row: {}", data);
 
             ReportResultRow resultRowRecord = new ReportResultRow(section: ReportResultRow.SECTION_MAIN, displayOrder: displayOrder++, dataMap: data);
