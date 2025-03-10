@@ -39,19 +39,11 @@ This report pack is built for the post v1.0 plugin framework so requires Morpheu
 
 ![morpheusAgentInstalledVersionReport.png](samples%2FmorpheusAgentInstalledVersionReport.png)
 
-### Role Reports
+### Security Reports
 
-- Assigned Role Report (WIP)
+#### Cypher Access Report
 
-### Policy Reports
-
-- Enforcing Policies Report (WIP, SQL in provider)
-
-### In the pipeline
-
-- User Activity Report
-- Role > Group Overview Report
-- Appliance setup/healthcheck type Report
+![cypherAccessReport.png](samples%2FcypherAccessReport.png)
 
 ## Contributing
 
@@ -82,7 +74,7 @@ If not, and you have Java installed, you can use the Gradle build wrappers inclu
 The third option is to use Docker and the command to build the project in a Docker container is included in the Makefile.
 You may need to adapt it for Windows, but this approach does not require any local dependencies. I use this approach myself.
 
-### License
+### Contributors
 
-TODO (probably MPL 2.0)
+Cypher Access Report by [@kkerr2005](https://github.com/kkerr2005), Feb 2025
 

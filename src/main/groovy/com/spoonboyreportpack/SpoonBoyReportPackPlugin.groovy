@@ -63,6 +63,9 @@ class SpoonBoyReportPackPlugin extends Plugin {
         // Morpheus Agent installed versions
         this.registerProvider(new ProvisioningInventoryMorpheusAgentInstalledVersionReportProvider(this,this.morpheus))
 
+        // cypher password access
+        this.registerProvider(new CypherPasswordAccessReportProvider(this,this.morpheus))
+
     }
 
     /**
