@@ -1,6 +1,6 @@
 ## Spoon Boy Report Pack
 
-A suite of additional reports for Morpheus designed to address several real-world use cases.
+A suite of additional reports in a single plugin designed to extend the management information available in Morpheus.
 
 This report pack is built for the post v1.0 plugin framework so requires Morpheus version later than 6.3.0.
 
